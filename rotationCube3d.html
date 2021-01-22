@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotation 2d</title>
+</head>
+<body>
+
+    <canvas id="canvas" width="800" height="600"></canvas>
+    
+    <script>
+
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        const vector3d = (x, y, z) => {
+
+            return {x, y, z};
+        }
+
+        let angle = 0;
+
+        const maxtrixRotationX = (angle) =>{
+            
+            return [           
+
+                [ 1, 0, 0 ],
+                [ 0, Math.cos(angle), - Math.sin(angle) ],
+                [ 0, Math.sin(angle), Math.cos(angle) ]
+
+            ];
+        }
+
+        const maxtrixRotationY = (angle) =>{
+            
+            return [           
+
+                [ Math.cos(angle), 0, Math.sin(angle) ],
+                [ 0, 1, 0 ],
+                [ -Math.sin(angle), 0, Math.cos(angle) ]
+
+            ];
+        }
+
+        const maxtrixRotationZ = (angle) =>{
+            
+            return [           
+
+                [ Math.cos(angle), -Math.sin(angle), 0 ],
+                [ Math.sin(angle), Math.cos(angle) , 0 ],
+                [ 0, 0, 1 ]
+
+            ];
+        }
+
+        const multiplyMatrix = (threeToThreeMatrix, threeToOneMatrix) => {
+
+         
+            const x = threeToThreeMatrix[0][0] * threeToOneMatrix[0][0] + threeToThreeMatrix[0][1] * threeToOneMatrix[1][0] + threeToThreeMatrix[0][2] * threeToOneMatrix[2][0];
+            const y = threeToThreeMatrix[1][0] * threeToOneMatrix[0][0] + threeToThreeMatrix[1][1] * threeToOneMatrix[1][0] + threeToThreeMatrix[1][2] * threeToOneMatrix[2][0];
+            const z = threeToThreeMatrix[2][0] * threeToOneMatrix[0][0] + threeToThreeMatrix[2][1] * threeToOneMatrix[1][0] + threeToThreeMatrix[2][2] * threeToOneMatrix[2][0];
+
+            //console.log( twoToTwoMatrix[0][0] * threeToOneMatrix[0][0] + twoToTwoMatrix[0][1] * threeToOneMatrix[1][0] );
+            return vector3d(x, y, z);
+
+        }
+
+        const vectorToMatrixThreeToOne = (vector3d) => [[vector3d.x], [vector3d.y], [vector3d.z]];
+
+        const drawVertice = (vector3d) => {
+
+            context.beginPath();   
+            context.fillStyle = 'white';                
+            context.arc(vector3d.x, vector3d.y, 2, 0, 2 * Math.PI);                    
+           
+            context.fill();
+
+        }       
+
+        let vectors3d = []
+        
+        vectors3d.push(vector3d(-50, -50, 50));
+        vectors3d.push(vector3d(-50, 50, 50));
+        vectors3d.push(vector3d(50, 50, 50));
+        vectors3d.push(vector3d(50, -50, 50));      
+        vectors3d.push(vector3d(-50, -50, -50));
+        vectors3d.push(vector3d(-50, 50, -50));
+        vectors3d.push(vector3d(50, 50, -50));
+        vectors3d.push(vector3d(50, -50, -50));      
+        
+        const loop = () => {           
+            
+            angle = 0.01;
+
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, canvas.width, canvas.height);            
+            context.save();           
+
+            context.translate(400, 300);
+           
+            context.beginPath();
+
+             
+            for(let i = 0; i<4; ++i){                      
+                
+                context.strokeStyle='red'
+                
+                context.moveTo(vectors3d[i].x, vectors3d[i].y);
+                context.lineTo(vectors3d[(i + 1) % 4].x, vectors3d[(i + 1) %  4].y);
+
+                context.moveTo(vectors3d[i + 4].x, vectors3d[i + 4].y);
+                context.lineTo(vectors3d[((i + 1) % 4) + 4].x, vectors3d[((i + 1) %  4) + 4].y);
+
+                context.moveTo(vectors3d[i].x, vectors3d[i].y);
+                context.lineTo(vectors3d[ i + 4].x, vectors3d[i + 4].y);
+                context.closePath();
+                context.stroke();
+
+            //    context.fillStyle = "green"
+                context.fill();
+            };
+          
+
+           vectors3d = vectors3d.map(vector => {
+                
+                drawVertice(vector);              
+                vector = multiplyMatrix(maxtrixRotationY(angle), vectorToMatrixThreeToOne(vector))
+                vector = multiplyMatrix(maxtrixRotationZ(angle), vectorToMatrixThreeToOne(vector))
+                return multiplyMatrix(maxtrixRotationX(angle), vectorToMatrixThreeToOne(vector))
+
+            });
+          
+            
+            
+            context.restore();
+            
+            requestAnimationFrame(loop)
+
+        }
+
+        loop();
+
+    </script>
+        
+</body>
+</html>

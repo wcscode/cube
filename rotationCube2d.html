@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotation 2d</title>
+</head>
+<body>
+
+    <canvas id="canvas" width="800" height="600"></canvas>
+    
+    <script>
+
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        const vector2d = (x, y) => {
+
+            return {x, y};
+        }
+
+        let angle = 0;
+
+        const maxtrixRotation = (angle) =>{
+            
+            return [           
+
+                [ Math.cos(angle), - Math.sin(angle) ],
+                [ Math.sin(angle), Math.cos(angle) ]
+
+            ];
+        }
+
+
+        const multiplyMatrix = (twoToTwoMatrix, twoToOneMatrix) => {
+
+            const x = twoToTwoMatrix[0][0] * twoToOneMatrix[0][0] + twoToTwoMatrix[0][1] * twoToOneMatrix[1][0];
+            const y = twoToTwoMatrix[1][0] * twoToOneMatrix[0][0] + twoToTwoMatrix[1][1] * twoToOneMatrix[1][0];
+            //console.log( twoToTwoMatrix[0][0] * twoToOneMatrix[0][0] + twoToTwoMatrix[0][1] * twoToOneMatrix[1][0] );
+            return vector2d(x, y);
+
+        }
+
+        const vectorToMatrixTwoToOne = (vector2d) => [[vector2d.x], [vector2d.y]];
+
+        const drawVertice = (vector2d) => {
+
+            context.beginPath();   
+            context.fillStyle = 'white';                
+            context.arc(vector2d.x, vector2d.y, 5, 0, 2 * Math.PI);                    
+           
+            context.fill();
+
+        }       
+
+        let vectors2d = []
+        
+        vectors2d.push(vector2d(-50, -50));
+        vectors2d.push(vector2d(-50, 50));
+        vectors2d.push(vector2d(50, 50));
+        vectors2d.push(vector2d(50, -50));
+
+        console.log(vectors2d)
+        
+        const loop = () => {           
+            
+            angle = 0.01;
+
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, canvas.width, canvas.height);            
+            context.save();           
+
+            context.translate(400, 300);
+           
+            context.beginPath();
+
+             
+            for(let i = 0; i<vectors2d.length; ++i){                      
+                
+                context.strokeStyle='red'
+                context.moveTo(vectors2d[i].x, vectors2d[i].y);
+                context.lineTo(vectors2d[(i + 1) % vectors2d.length].x, vectors2d[(i + 1) % vectors2d.length].y);
+                context.stroke();
+            };
+          
+
+           vectors2d = vectors2d.map(vector => {
+                
+                drawVertice(vector);              
+                return multiplyMatrix(maxtrixRotation(angle), vectorToMatrixTwoToOne(vector))
+
+            });
+          
+            
+            context.restore();
+            
+            requestAnimationFrame(loop)
+
+        }
+
+        loop();
+
+    </script>
+        
+</body>
+</html>
