@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rotation 2d</title>
+    <title>Perspective Projection</title>
 </head>
 <body>
 
@@ -11,135 +11,147 @@
     
     <script>
 
+        const vector3d = (x, y, z) => { return {x, y, z} }; 
+        const triangle = (a, b, c) => { return {points:[a, b, c]} };
+        const mesh = () => {return {triangles:[]}};
+
+        const meshCube = mesh();
+
+        meshCube.triangles = [
+            //front
+            triangle(vector3d(1, 0, 0), vector3d(0, 0, 0), vector3d(0, 1, 0)),
+            triangle(vector3d(0, 1, 0), vector3d(1, 1, 0), vector3d(1, 0, 0)),
+            //back
+            triangle(vector3d(0, 0, 1), vector3d(1, 0, 1), vector3d(1, 1, 1)),
+            triangle(vector3d(1, 1, 1), vector3d(0, 1, 1), vector3d(0, 0, 1)),
+            //top
+            triangle(vector3d(0, 1, 0), vector3d(0, 1, 1), vector3d(1, 1, 1)),
+            triangle(vector3d(1, 1, 1), vector3d(1, 1, 0), vector3d(0, 1, 0)),
+            //bottom
+            triangle(vector3d(0, 0, 1), vector3d(0, 0, 0), vector3d(1, 0, 0)),
+            triangle(vector3d(1, 0, 0), vector3d(1, 0, 1), vector3d(0, 0, 1)),
+            //left
+            triangle(vector3d(0, 0, 0), vector3d(0, 1, 0), vector3d(0, 1, 1)),
+            triangle(vector3d(0, 1, 1), vector3d(0, 0, 1), vector3d(0, 0, 0)),
+            //right
+            triangle(vector3d(1, 0, 1), vector3d(1, 0, 0), vector3d(1, 1, 0)),
+            triangle(vector3d(1, 1, 0), vector3d(1, 1, 1), vector3d(1, 0, 1))
+
+        ];
+
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
 
-        const vector3d = (x, y, z) => {
+        //console.log(meshCube)
+        context.fillRect(0, 0, 800, 600);
+        context.translate(400, 300);
+        //context.rotate(Math.PI / 2);
+        context.strokeStyle = 'white';
 
-            return {x, y, z};
-        }
 
-        let angle = 0;
+        const matrixUniformScaling = (scale) => [
 
-        const maxtrixRotationX = (angle) =>{
-            
-            return [           
+            [scale, 0, 0, 0],
+            [0, scale, 0, 0],
+            [0, 0, scale, 0],
+            [0, 0, 0, 1]
 
-                [ 1, 0, 0 ],
-                [ 0, Math.cos(angle), - Math.sin(angle) ],
-                [ 0, Math.sin(angle), Math.cos(angle) ]
+        ];
 
-            ];
-        }
 
-        const maxtrixRotationY = (angle) =>{
-            
-            return [           
 
-                [ Math.cos(angle), 0, Math.sin(angle) ],
-                [ 0, 1, 0 ],
-                [ -Math.sin(angle), 0, Math.cos(angle) ]
+        const matrixRotationX = (angle) => [
 
-            ];
-        }
+            [1, 0, 0, 0],
+            [0, Math.cos(angle), -Math.sin(angle), 0],
+            [0, Math.sin(angle), Math.cos(angle), 0],    
+            [0, 0, 0, 1]
 
-        const maxtrixRotationZ = (angle) =>{
-            
-            return [           
+        ];
 
-                [ Math.cos(angle), -Math.sin(angle), 0 ],
-                [ Math.sin(angle), Math.cos(angle) , 0 ],
-                [ 0, 0, 1 ]
+        const matrixRotationY = (angle) => [
 
-            ];
-        }
+            [Math.cos(angle), 0, Math.sin(angle), 0],
+            [0, 1, 0, 0],
+            [-Math.sin(angle), 0, Math.cos(angle), 0],    
+            [0, 0, 0, 1]
 
-        const multiplyMatrix = (threeToThreeMatrix, threeToOneMatrix) => {
+        ];
 
-         
-            const x = threeToThreeMatrix[0][0] * threeToOneMatrix[0][0] + threeToThreeMatrix[0][1] * threeToOneMatrix[1][0] + threeToThreeMatrix[0][2] * threeToOneMatrix[2][0];
-            const y = threeToThreeMatrix[1][0] * threeToOneMatrix[0][0] + threeToThreeMatrix[1][1] * threeToOneMatrix[1][0] + threeToThreeMatrix[1][2] * threeToOneMatrix[2][0];
-            const z = threeToThreeMatrix[2][0] * threeToOneMatrix[0][0] + threeToThreeMatrix[2][1] * threeToOneMatrix[1][0] + threeToThreeMatrix[2][2] * threeToOneMatrix[2][0];
+        const matrixRotationZ = (angle) => [
 
-            //console.log( twoToTwoMatrix[0][0] * threeToOneMatrix[0][0] + twoToTwoMatrix[0][1] * threeToOneMatrix[1][0] );
-            return vector3d(x, y, z);
+            [Math.cos(angle), -Math.sin(angle), 0, 0],
+            [Math.sin(angle), Math.cos(angle), 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
 
-        }
+        ];
 
-        const vectorToMatrixThreeToOne = (vector3d) => [[vector3d.x], [vector3d.y], [vector3d.z]];
+        const fovy = 45;
+        const aspect = 800 / 600;
+        const cotOfFovyDivided2 = (1 / Math.tan(fovy/2));
+        const zFar = 100.0;
+        const zNear = .1;
 
-        const drawVertice = (vector3d) => {
+        const matrixPerspective = () => [
 
-            context.beginPath();   
-            context.fillStyle = 'white';                
-            context.arc(vector3d.x, vector3d.y, 2, 0, 2 * Math.PI);                    
-           
-            context.fill();
+            [cotOfFovyDivided2 / aspect, 0, 0, 0],
+            [0, cotOfFovyDivided2, 0, 0],
+            [0, 0, -(zFar / (zFar - zNear)), -((zNear * zFar) / (zFar - zNear)) ],
+            [0, 0, -1, 0]
 
-        }       
+        ];
 
-        let vectors3d = []
+        const multiplyMatrix = (vector, matrix) => {
         
-        vectors3d.push(vector3d(-50, -50, 50));
-        vectors3d.push(vector3d(-50, 50, 50));
-        vectors3d.push(vector3d(50, 50, 50));
-        vectors3d.push(vector3d(50, -50, 50));      
-        vectors3d.push(vector3d(-50, -50, -50));
-        vectors3d.push(vector3d(-50, 50, -50));
-        vectors3d.push(vector3d(50, 50, -50));
-        vectors3d.push(vector3d(50, -50, -50));      
-        
-        const loop = () => {           
+            return {
+                x: vector.x * matrix[0][0] + vector.y * matrix[0][1] + vector.z * matrix[0][2],
+                y: vector.x * matrix[1][0] + vector.y * matrix[1][1] + vector.z * matrix[1][2],
+                z: vector.x * matrix[2][0] + vector.y * matrix[2][1] + vector.z * matrix[2][2],        
+            }
+        }
+
+        //meshCube.triangles = meshCube.triangles.filter((f, index, o) => {
+        //    return index == 0 
+        //});
+
+        //console.log(meshCube.triangles);
+        meshCube.triangles.forEach(triangle =>{
+
+            const points = triangle.points.map(point => {
+
+                
+            /*  const pointRotatedX =  multiplyMatrix(point, matrixRotationX(Math.PI / 4));
+                const pointRotatedY =  multiplyMatrix(pointRotatedX, matrixRotationY(Math.PI / 4));
+                const pointRotatedZ =  multiplyMatrix(pointRotatedY, matrixRotationZ(Math.PI / 2));
+                const pointScaled = multiplyMatrix(pointRotatedZ, matrixUniformScaling(100));*/
+                const pointPerspective = multiplyMatrix(point, matrixPerspective());
+                //console.table(point)
+                //console.table(pointPerspective)
+                console.log(zFar / (zFar - zNear))
+                console.log(" and ")
+                console.log((zNear * zFar) / (zFar - zNear))
+
+                console.log(zFar / (zFar - zNear) == (zNear * zFar) / (zFar - zNear))
+
+                const pointScaled = multiplyMatrix(pointPerspective, matrixUniformScaling(100));
+                const transformedPoint = pointScaled;
+
+                return transformedPoint;
+            })
             
-            angle = 0.01;
-
-            context.fillStyle = 'black';
-            context.fillRect(0, 0, canvas.width, canvas.height);            
-            context.save();           
-
-            context.translate(400, 300);
-           
+        
             context.beginPath();
-
-             
-            for(let i = 0; i<4; ++i){                      
-                
-                context.strokeStyle='red'
-                
-                context.moveTo(vectors3d[i].x, vectors3d[i].y);
-                context.lineTo(vectors3d[(i + 1) % 4].x, vectors3d[(i + 1) %  4].y);
-
-                context.moveTo(vectors3d[i + 4].x, vectors3d[i + 4].y);
-                context.lineTo(vectors3d[((i + 1) % 4) + 4].x, vectors3d[((i + 1) %  4) + 4].y);
-
-                context.moveTo(vectors3d[i].x, vectors3d[i].y);
-                context.lineTo(vectors3d[ i + 4].x, vectors3d[i + 4].y);
-                context.closePath();
-                context.stroke();
-
-            //    context.fillStyle = "green"
-                context.fill();
-            };
-          
-
-           vectors3d = vectors3d.map(vector => {
-                
-                drawVertice(vector);              
-                vector = multiplyMatrix(maxtrixRotationY(angle), vectorToMatrixThreeToOne(vector))
-                vector = multiplyMatrix(maxtrixRotationZ(angle), vectorToMatrixThreeToOne(vector))
-                return multiplyMatrix(maxtrixRotationX(angle), vectorToMatrixThreeToOne(vector))
-
-            });
-          
             
-            
-            context.restore();
-            
-            requestAnimationFrame(loop)
+            context.moveTo(points[0].x, points[0].y);   
+            context.lineTo(points[1].x, points[1].y);    
+            context.lineTo(points[2].x, points[2].y);  
+            context.lineTo(points[0].x, points[0].y); 
+            context.closePath();
+            context.stroke();
 
-        }
+        });
 
-        loop();
 
     </script>
         
