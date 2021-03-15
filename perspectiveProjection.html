@@ -19,24 +19,26 @@
         const meshCube = mesh();
 
         meshCube.triangles = [
-            //front
-            triangle(vector3d(1, 0, 0), vector3d(0, 0, 0), vector3d(0, 1, 0)),
-            triangle(vector3d(0, 1, 0), vector3d(1, 1, 0), vector3d(1, 0, 0)),
+
             //back
-            triangle(vector3d(0, 0, -1), vector3d(1, 0, -1), vector3d(1, 1, -1)),
-            triangle(vector3d(1, 1, -1), vector3d(0, 1, -1), vector3d(0, 0, -1)),
+            triangle(vector3d(-.5, -.5, -2), vector3d(.5, -.5, -2), vector3d(.5, .5, -2)),
+            triangle(vector3d(.5, .5, -2), vector3d(-.5, .5, -2), vector3d(-.5, -.5, -2)),            
+            //front
+            triangle(vector3d(.5, -.5, -1), vector3d(-.5, -.5, -1), vector3d(-.5, .5, -1)),
+            triangle(vector3d(-.5, .5, -1), vector3d(.5, .5, -1), vector3d(.5, -.5, -1)),
+          
             //top
-            triangle(vector3d(0, 1, 0), vector3d(0, 1, -1), vector3d(1, 1, -1)),
-            triangle(vector3d(1, 1, -1), vector3d(1, 1, 0), vector3d(0, 1, 0)),
+            triangle(vector3d(-.5, .5, -1), vector3d(-.5, .5, -2), vector3d(.5, .5, -2)),
+            triangle(vector3d(.5, .5, -2), vector3d(.5, .5, -1), vector3d(-.5, .5, -1)),
             //bottom
-            triangle(vector3d(0, 0, -1), vector3d(0, 0, 0), vector3d(1, 0, 0)),
-            triangle(vector3d(1, 0, 0), vector3d(1, 0, -1), vector3d(0, 0, -1)),
+            triangle(vector3d(-.5, -.5, -2), vector3d(-.5, -.5, -1), vector3d(.5, -.5, -1)),
+            triangle(vector3d(.5, -.5, -1), vector3d(.5, -.5, -2), vector3d(-.5, -.5, -2)),
             //left
-            triangle(vector3d(0, 0, 0), vector3d(0, 1, 0), vector3d(0, 1, -1)),
-            triangle(vector3d(0, 1, -1), vector3d(0, 0, -1), vector3d(0, 0, 0)),
+            triangle(vector3d(-.5, -.5, -1), vector3d(-.5, .5, -1), vector3d(-.5, .5, -2)),
+            triangle(vector3d(-.5, .5, -2), vector3d(-.5, -.5, -2), vector3d(-.5, -.5, -1)),
             //right
-            triangle(vector3d(1, 0, -1), vector3d(1, 0, 0), vector3d(1, 1, 0)),
-            triangle(vector3d(1, 1, 0), vector3d(1, 1, -1), vector3d(1, 0, -1))
+            triangle(vector3d(.5, -.5, -2), vector3d(.5, -.5, -1), vector3d(.5, .5, -1)),
+            triangle(vector3d(.5, .5, -1), vector3d(.5, .5, -2), vector3d(.5, -.5, -2))
 
         ];
 
@@ -44,8 +46,7 @@
         const context = canvas.getContext('2d');
 
         //console.log(meshCube)
-        context.fillRect(0, 0, 800, 600);
-        context.translate(400, 300);
+
         //context.rotate(Math.PI / 2);
         context.strokeStyle = 'white';
 
@@ -108,15 +109,17 @@
                 x: vector.x * matrix[0][0] + vector.y * matrix[1][0] + vector.z * matrix[2][0] + matrix[3][0],
                 y: vector.x * matrix[0][1] + vector.y * matrix[1][1] + vector.z * matrix[2][1] + matrix[3][1],
                 z: vector.x * matrix[0][2] + vector.y * matrix[1][2] + vector.z * matrix[2][2] + matrix[3][2],        
-                w: vector.x * matrix[0][3] + vector.y * matrix[1][3] + vector.z * matrix[2][3] + matrix[3][3],        
+                w: vector.x * matrix[0][3] + vector.y * matrix[1][3] + vector.z * matrix[2][3] + matrix[3][3]         
             }
 
-            if(result.w == 0) return result;
+            if(result.w != 1){
 
-            result.x /= result.w
-            result.y /= result.w
-            result.z /= result.w
-            result.w /= result.w
+                result.x /= 3 - result.w
+                result.y /= 3 - result.w
+                result.z /= result.w 
+                result.w /= result.w
+
+            }           
             
             return result;
         }
@@ -125,38 +128,72 @@
         //meshCube.triangles = meshCube.triangles.filter((f, index, o) => {
         //    return index == 0 
         //});
+        let angle = 0;
 
+        const TWO_PI =  Math.PI * 2;
+        function loop(){
+
+            context.save();
+            context.fillRect(0, 0, 800, 600);
+            context.translate(400, 300);           
+          
         //console.log(meshCube.triangles);
-        meshCube.triangles.forEach(triangle =>{
+            meshCube.triangles.forEach((triangle, index) => {
 
-            const points = triangle.points.map(point => {
+                const current = 0
+                
+            //  context.strokeStyle = index == current || index == current + 1 ? "red" : "white"  
+    //            context.lineWidth = index == current || index == current + 1 ? 5 : 1
+
+                const points = triangle.points.map(point => {
 
                 
-               // const pointRotatedX =  multiplyMatrix(point, matrixRotationX(Math.PI / 4));
-               // const pointRotatedY =  multiplyMatrix(pointRotatedX, matrixRotationY(Math.PI / 4));
-               // const pointRotatedZ =  multiplyMatrix(pointRotatedY, matrixRotationZ(Math.PI / 2));
-                const pointScaled = multiplyMatrix(point, matrixUniformScaling(100));
-                const pointPerspective = multiplyMatrix(point, matrixPerspective(fov, f, n));
+                // const pointRotatedX =  multiplyMatrix(point, matrixRotationX(Math.PI / 4));
+                //  const pointRotatedY =  multiplyMatrix(point, matrixRotationY(Math.PI / 4));
+                // const pointRotatedZ =  multiplyMatrix(pointRotatedY, matrixRotationZ(Math.PI / 2));
                 
-                //const pointScaled = multiplyMatrix(pointPerspective, matrixUniformScaling(10));
-                const transformedPoint = pointPerspective;
+                
+                const pointRotatedY =  multiplyMatrix(point, matrixRotationY(angle));
+                const pointPerspective = multiplyMatrix(pointRotatedY, matrixPerspective(fov, f, n));  
 
-                return transformedPoint;
-            })
+                const pointScaled = multiplyMatrix(pointPerspective, matrixUniformScaling(200)); 
+                     
+                    
+                    //const pointScaled = multiplyMatrix(pointPerspective, matrixUniformScaling(10));
+                    const transformedPoint = pointScaled;
+
+                    
+                //  console.table(pointScaled)
+                    return transformedPoint;
+                })
+                
+                
+               // console.table(points) 
+                context.beginPath();            
+                context.moveTo(points[0].x, points[0].y);   
+                context.lineTo(points[1].x, points[1].y);    
+                context.lineTo(points[2].x, points[2].y);  
+                context.lineTo(points[0].x, points[0].y); 
+                context.closePath();
+                context.stroke();
+
             
-        
-            context.beginPath();
-            
-            context.moveTo(points[0].x, points[0].y);   
-            context.lineTo(points[1].x, points[1].y);    
-            context.lineTo(points[2].x, points[2].y);  
-            context.lineTo(points[0].x, points[0].y); 
-            context.closePath();
-            context.stroke();
 
-        });
+            });
 
+        context.restore();
 
+        angle += 0.01;
+        //console.log(angle)
+        if(angle == 3.14) {
+
+              console.log(angle)
+             angle = 0
+        }
+        requestAnimationFrame(loop)
+    }
+       
+        loop()
     </script>
         
 </body>
