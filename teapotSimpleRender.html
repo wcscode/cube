@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perspective Projection</title>
+    <script src="teapotData.js"></script>
+</head>
+<body>
+
+
+    <canvas id="canvas" width="800" height="600"></canvas>
+    
+    <script>
+
+        const matrixUniformScaling = (scale) => [
+
+            [scale, 0, 0, 0],
+            [0, scale, 0, 0],
+            [0, 0, scale, 0],
+            [0, 0, 0, 1]
+
+        ];
+
+        const matrixRotationX = (angle) => [
+
+            [1, 0, 0, 0],
+            [0, Math.cos(angle), -Math.sin(angle), 0],
+            [0, Math.sin(angle), Math.cos(angle), 0],    
+            [0, 0, 0, 1]
+
+        ];
+
+        const multiplyMatrix = (vector, matrix) => {
+            
+            const result = [
+                 vector[0] * matrix[0][0] + vector[1] * matrix[1][0] + vector[2] * matrix[2][0] + matrix[3][0],
+                 vector[0] * matrix[0][1] + vector[1] * matrix[1][1] + vector[2] * matrix[2][1] + matrix[3][1],
+                 vector[0] * matrix[0][2] + vector[1] * matrix[1][2] + vector[2] * matrix[2][2] + matrix[3][2],        
+                 vector[0] * matrix[0][3] + vector[1] * matrix[1][3] + vector[2] * matrix[2][3] + matrix[3][3],        
+            ];
+
+            return result;
+        }
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+       
+        context.strokeStyle = "white";
+
+       let angle = 0;
+
+        animation = () =>{
+
+            context.fillRect(0, 0, 800, 600);
+            context.save();
+            context.fillStyle = "white"
+            context.strokeStyle="red"
+            context.lineWidth = 1;
+            context.translate(400, 300);
+            angle += 0.01;
+
+            let beginV = [];
+             let middleV = [];
+            teapotsVertices.forEach((vector, index) => {
+                
+
+                let v =  multiplyMatrix(vector, matrixUniformScaling(100));
+                v =  multiplyMatrix(v, matrixRotationX(angle));
+
+               
+               
+
+                if(index % 3 == 0){  
+                    beginV = v;
+                    context.beginPath();                   
+                    context.moveTo(v[0], v[1])                    
+                }
+                if(index % 3 == 1){
+                   middleV = v; 
+                    context.lineTo(v[0], v[1])
+                }
+                if(index % 3 == 2){ 
+                    context.lineTo(v[0], v[1])
+                    context.lineTo(beginV[0], beginV[1]) 
+                    context.closePath()
+                   // context.stroke();
+
+                    context.fillStyle = "white"
+                    context.beginPath()
+                    
+                    context.arc(beginV[0], beginV[1], 2, 0, 2 * Math.PI);
+                    context.closePath();
+                    context.fill();
+                    context.beginPath()
+                    context.arc(middleV[0], middleV[1], 2, 0, 2 * Math.PI);
+                    context.closePath();
+                    context.fill();
+                    context.beginPath()
+                    context.arc(v[0], v[1], 2, 0, 2 * Math.PI);
+                    context.closePath();
+                   // context.stroke();
+                    context.fill();
+                     
+                    context.stroke();                
+                }
+               
+
+
+            });
+            context.restore();
+            requestAnimationFrame(animation);
+        }
+
+        
+        animation();
+    </script>
