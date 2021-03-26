@@ -8,10 +8,13 @@
     <title>Document</title>
 </head>
 <body>
-    
+    <canvas id="canvas" width="800" height="600"></canvas>
 </body>
 </html>
 <script>
+
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
 
 const vector3d = (x, y, z, w) => { return {x, y, z, w} };
 
@@ -19,8 +22,47 @@ const matrixPerspectiveOne = () => [
 
 [1, 0, 0, 0],
 [0, 1, 0, 0],
-[0, 0, -1, -1],
+[0, 0, 1, -1],
 [0, 0, 0, 0]
+
+];
+
+const aspect = 800 / 600;
+const s = (fov) => 1 / Math.tan(fov * .5 * Math.PI / 180);
+
+const matrixPerspective = (fov, aspect, f, n) => [
+
+    [s(fov), 0, 0, 0],
+    [0, s(fov), 0, 0],
+    [0, 0, -f / (f - n), -1],
+    [0, 0, -f * n / (f - n), 0]
+
+];
+
+const matrixUniformScaling = (scale) => [
+
+    [scale, 0, 0, 0],
+    [0, scale, 0, 0],
+    [0, 0, scale, 0],
+    [0, 0, 0, 1]
+
+];
+
+const matrixTranslate = (tx, ty, tz) => [
+
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 1, 0],
+    [tx, ty, tz, 1]
+
+];
+
+const matrixRotationX = (angle) => [
+
+    [1, 0, 0, 0],
+    [0, Math.cos(angle), -Math.sin(angle), 0],
+    [0, Math.sin(angle), Math.cos(angle), 0],    
+    [0, 0, 0, 1]
 
 ];
 
@@ -33,7 +75,7 @@ const multiplyMatrix = (vector, matrix) => {
             w: vector.x * matrix[0][3] + vector.y * matrix[1][3] + vector.z * matrix[2][3] + vector.w * matrix[3][3],        
         }
 
-        result.x = result.x / result.w;
+        result.x /= result.w;
         result.y /= result.w;
         result.z /= result.w;
         result.w /= result.w;
@@ -41,7 +83,105 @@ const multiplyMatrix = (vector, matrix) => {
         return result;
     }
 
-const resultOne = multiplyMatrix(vector3d(1,1,1,1), matrixPerspectiveOne());
+    const points = [];
+    
+    //back
+    points.push(vector3d(-100, 100, 100, 1));
+    points.push(vector3d(100, 100, 100, 1));
+    points.push(vector3d(-100, -100, 100, 1));
+    points.push(vector3d(100, -100, 100, 1));
 
-console.table(resultOne);
+    //front
+    points.push(vector3d(-100, 100, -100, 1));
+    points.push(vector3d(100, 100, -100, 1));
+    points.push(vector3d(-100, -100, -100, 1));
+    points.push(vector3d(100, -100, -100, 1));
+
+//const resultOne = multiplyMatrix(, matrixPerspectiveOne());
+
+
+
+
+const TWO_PI = 2 * Math.PI;
+let angle = 0;
+let first = true;
+const animate = () => {
+
+    
+    context.save();
+    context.fillRect(0, 0, 800, 600);
+    context.translate(400, 300);
+    
+    points.forEach((point, index) => {
+    
+        
+        point = multiplyMatrix(point, matrixTranslate(0, 0, 0));
+        
+
+      
+      //  point = multiplyMatrix(point, matrixTranslate(0, 0, 200));
+      // point = multiplyMatrix(point, matrixPerspective(90, aspect, 50, 1)); 
+        //point = multiplyMatrix(point, matrixUniformScaling(100));
+  
+    
+        
+
+        if(index < 4 && first) {    
+            console.table(point)
+
+            if(index == 3)
+            first = false;
+        }
+
+       // point.x/= (100 - point.z);
+      //  point.y/= (100 - point.z);
+     //  console.log(point.y)
+        point = multiplyMatrix(point, matrixRotationX(angle));
+        point.y /= -point.z - 10;
+      //  point = multiplyMatrix(point, matrixUniformScaling(10));
+
+      //if(index == 0)
+      // console.log(point.z)
+       
+
+       // console.log(point.x)
+
+       // console.table(point)
+      // context.beginPath()
+        //context.font = '30px Arial'
+        //context.fillText(point.y, -350, -250)
+       
+        context.beginPath();
+        context.arc(point.x, point.y, 2, 0, Math.PI * 2);
+        context.strokeStyle = index < 4 ? 'white' : 'red';
+        context.fillStyle = index < 4 ? 'white' : 'red';
+        
+        context.closePath();
+        context.fill();
+       // context.stroke();
+        context.beginPath();
+        context.arc(0, 0, 5, 0, Math.PI * 2);
+        context.fillStyle = 'blue'
+        context.fill();
+        context.stroke();
+
+    });
+
+    context.restore();
+
+    if(angle >= TWO_PI)                
+        angle = Math.abs(TWO_PI - angle);
+    else
+        angle += .01;
+
+   requestAnimationFrame(animate);
+    
+};
+
+
+
+animate();
+//console.table(resultOne);
+//setInterval(animate, 1000)
 </script>
+

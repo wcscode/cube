@@ -70,19 +70,59 @@
             context.fillRect(0, 0, 800, 600);
             context.translate(400, 300);     
         
+            
+            context.beginPath();
+           // console.table(teapotsVertices[0])
+            let beginVertex = [];
+            let f = false;
+            teapotPatches.forEach(patchesRows =>{
 
-            teapotsVertices.forEach(vertex => {
+                
+                patchesRows.forEach((indexVertex, index) => {
+                
+                   // console.log(indexVertex)
+                    let newVertex = multiplyMatrix(teapotsVertices[indexVertex -1], matrixUniformScaling(80));
+                    newVertex = multiplyMatrix(newVertex, matrixRotationX(angle));
+
+                    if(index % 4 == 0){
+                        if(beginVertex.length > 0) {
+                            context.lineTo(beginVertex, beginVertex);
+                            context.closePath();
+                        context.stroke();
+                        }
+
+                        beginVertex = newVertex;
+                        if(index < 4 && !f){
+                        context.strokeStyle =  'red';
+                         } else{
+                             f = true;
+                            context.strokeStyle =  'white';   
+                        }
+                        context.beginPath();
+                        context.moveTo(newVertex[0], newVertex[1]);
+                    }else{
+                        context.lineTo(newVertex[0], newVertex[1]);
+                    };
+                });
+            });
+
+           
+            
+            /*
+            teapotsVertices.forEach((vertex, index) => {
             
                 let newVertex = multiplyMatrix(vertex, matrixUniformScaling(80));
                 newVertex = multiplyMatrix(newVertex, matrixRotationX(angle));
                
                 context.fillStyle = 'white';
+
+                
                 context.beginPath();
                 context.arc(newVertex[0], newVertex[1], 2, 0, TWO_PI);
                 context.fill();        
                 context.closePath();
-
-            });
+                           
+            });*/
 
 
             context.restore();
